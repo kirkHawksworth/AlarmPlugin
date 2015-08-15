@@ -58,8 +58,8 @@ public class AlarmPlugin extends CordovaPlugin {
 				
 				SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this.cordova.getActivity());
 				SharedPreferences.Editor editor = settings.edit();
-	            editor.putLong("AlarmPlugin.AlarmDate", aDate.getTime()); //$NON-NLS-1$
-	            editor.commit();
+        editor.putLong("AlarmPlugin.AlarmDate", aDate.getTime()); //$NON-NLS-1$
+        editor.commit();
 				
 				AlarmManager alarmMgr = (AlarmManager)(this.cordova.getActivity().getSystemService(Context.ALARM_SERVICE));
 				
@@ -74,6 +74,11 @@ public class AlarmPlugin extends CordovaPlugin {
 				callbackContext.success("Alarm set at: " +sdf.format(aDate));
 			    return true; 		
 			}
+      else if ("cancelAlarm".equals(action)) {
+        cancelAlarm();
+        callbackContext.success("Alarm removed");
+        return true;
+      }
 			return false;		
 		} catch(Exception e) {
 		    System.err.println("Exception: " + e.getMessage());
@@ -81,4 +86,20 @@ public class AlarmPlugin extends CordovaPlugin {
 		    return false;
 		} 
 	}
+
+  private void cancelAlarm() {
+
+    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this.cordova.getActivity());
+    SharedPreferences.Editor editor = settings.edit();
+    editor.remove("AlarmPlugin.AlarmDate");
+    editor.commit();
+
+    AlarmManager alarmMgr = (AlarmManager)(this.cordova.getActivity().getSystemService(Context.ALARM_SERVICE));
+
+    PendingIntent alarmIntent;
+    Intent intent = new Intent(this.cordova.getActivity(), AlarmReceiver.class);
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    alarmIntent = PendingIntent.getBroadcast(this.cordova.getActivity(), 0, intent, 0);
+    alarmMgr.cancel(alarmIntent);
+  }
 }
